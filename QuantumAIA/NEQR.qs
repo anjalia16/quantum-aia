@@ -15,17 +15,17 @@ namespace NEQR {
         EqualityFactI(
             Length(color_register), 
             8, 
-            "Color register was length " + IntAsString(Length(color_register)) + ", should be 8"
+            "Color register length is incorrect"
         );
         EqualityFactI(
             Length(y_register), 
-            Ceiling(Lg(IntAsDouble(Length(image) + 1))), 
-            "Y position register was length " + IntAsString(Length(y_register)) + ", should be " + IntAsString(Ceiling(Lg(IntAsDouble(Length(image) + 1))))
+            Ceiling(Lg(IntAsDouble(Length(image)))), 
+            "Y position register length is incorrect"
         );
         EqualityFactI(
             Length(x_register), 
-            Ceiling(Lg(IntAsDouble(Length(image[0]) + 1))),
-            "X position register was length " + IntAsString(Length(x_register)) + ", should be " + IntAsString(Ceiling(Lg(IntAsDouble(Length(image[0]) + 1))))
+            Ceiling(Lg(IntAsDouble(Length(image[0])))),
+            "X position register length is incorrect"
         );
 
         ApplyToEach(H, y_register);
@@ -53,8 +53,8 @@ namespace NEQR {
     // Produces a measurement from an image encoded into NEQR
     operation EncodeNEQRResult(image: Int[][]) : Result[] {
         use color_register = Qubit[8];
-        use y_register = Qubit[Ceiling(Lg(IntAsDouble(Length(image) + 1)))];
-        use x_register = Qubit[Ceiling(Lg(IntAsDouble(Length(image[0]) + 1)))];
+        use y_register = Qubit[Ceiling(Lg(IntAsDouble(Length(image))))];
+        use x_register = Qubit[Ceiling(Lg(IntAsDouble(Length(image[0]))))];
 
         EncodeNEQR(color_register, y_register, x_register, image);
         let result = MultiM(color_register + y_register + x_register);
