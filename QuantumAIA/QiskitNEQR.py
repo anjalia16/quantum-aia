@@ -1,7 +1,7 @@
 import math
 # Importing standard Qiskit libraries
 from qiskit import QuantumCircuit, transpile, Aer, IBMQ
-from qiskit import QuantumRegister, ClassicalRegister
+from qiskit import QuantumRegister, ClassicalRegister, execute
 
 
 # Loading your IBM Quantum account(s)
@@ -69,8 +69,6 @@ def NEQR(image):
         [128, 144, 160, 176],
         [192, 208, 224, 255],
     ]
-    
-    NEQR(image1)
 
 
 
