@@ -1,6 +1,7 @@
 from collections import Counter
 from math import ceil, log2
 from NEQR import EncodeNEQRResult
+import QiskitNEQR
 import qsharp
 import time
 from typing import List
@@ -28,7 +29,13 @@ images = [
 
 def get_results_qs(iterations : int, image : List[List[int]]) -> Counter:
     """
-    Returns results of running NEQR encoding multiple times on the Q# implementation
+    Returns all the results of measuring the NEQR image encoded with the Q# implementation.
+
+    Parameters
+        iterations -> int: The number of times to measure the NEQR encoded image. Higher is slower, but is more likely to find all the encoded pixels.
+        image -> List[List[int]]: The image to encode and measure.
+    Returns
+        Counter: A Counter collections object containing all the measurements. Key is in (color, y, x), value is the number of measurements.
     """
     y_size : int = len(image)
     x_size : int = len(image[0])
@@ -47,11 +54,27 @@ def get_results_qs(iterations : int, image : List[List[int]]) -> Counter:
 
 def get_results_qiskit(iterations :int, image) -> Counter:
     """
-    Returns all the results of running qiskit multiple times mon 
+    Returns all the results of measuring the NEQR image encoded with the Qiskit implementation.
+
+    Parameters
+        iterations -> int: The number of times to measure the NEQR encoded image. Higher is slower, but is more likely to find all the encoded pixels.
+        image -> List[List[int]]: The image to encode and measure.
+    Returns
+        Counter: A Counter collections object containing all the measurements. Key is in (color, y, x), value is the number of measurements.
     """
     pass
 
 def verify_results(results : Counter, image : List[List[int]]) -> bool:
+    """
+    Verifies that all the measurement results have valid positions and all positions were found, 
+    in addition to matching colors.
+
+    Parameters:
+        results -> Counter: results from either get_results_qiskit() or get_results_qs() to compare to the image
+        image -> List[List[int]]: the image to verify results on
+    Returns:
+        bool: True if the results are valid and match the image, False otherwise
+    """
     corrects : List[List[bool]] = [[False for pixel in row] for row in image]
 
     passing : bool = True
@@ -74,7 +97,11 @@ def verify_results(results : Counter, image : List[List[int]]) -> bool:
 
     return passing
 
-def test():
+def test() -> None:
+    """
+    Iterates through all of the globally defined images, encodes them with both Q# and Qiskit, and verifies the results.
+    Outputs if it passed or failed, and the time it took to do so.
+    """
     for i, image in enumerate(images):
         start = time.time()
         qs_result = get_results_qs(ITR, image)
