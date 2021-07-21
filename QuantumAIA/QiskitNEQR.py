@@ -6,8 +6,8 @@ from qiskit import execute
 def NEQR(image):
 
     intensity = QuantumRegister(8)
-    y_register = QuantumRegister(math.ceil(math.log(len(image) + 1) / math.log(2)))
-    x_register = QuantumRegister(math.ceil(math.log(len(image[0]) + 1) / math.log(2)))
+    y_register = QuantumRegister(math.ceil(math.log(len(image)) / math.log(2)))
+    x_register = QuantumRegister(math.ceil(math.log(len(image[0])) / math.log(2)))
     ancillas_y = QuantumRegister(len(y_register))
     ancillas_x = QuantumRegister(len(x_register))
     i_measurement = ClassicalRegister(8)
@@ -85,6 +85,7 @@ def NEQR(image):
                 if storeAlteredY[i]:
                     circuit.x(y_register[i])
 
+
     circuit.measure(intensity, i_measurement)
     circuit.measure(x_register, x_measurement)
     circuit.measure(y_register, y_measurement)
@@ -98,11 +99,12 @@ def NEQR(image):
     #output
     for (state, count) in counts.items():
 
-        y = int(state[0:3], 2)
-        x = int(state[4:7], 2)
-        i = int(state[8:14], 2)
+        x = int(state[1::-1], 2)
+        y = int(state[4:2:-1], 2)
+        i = int(state[13:5:-1], 2)
 
         if x < 4 and y < 4:
+            print(f"{state}")
             print(f"Row {y}, item {x} is {i}.")
 
 #test
