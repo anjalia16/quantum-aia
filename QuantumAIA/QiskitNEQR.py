@@ -1,12 +1,7 @@
 import math
-# Importing standard Qiskit libraries
 from qiskit import QuantumCircuit, transpile, Aer, IBMQ
 from qiskit import QuantumRegister, ClassicalRegister
 from qiskit import execute
-
-
-# Loading your IBM Quantum account(s)
-#provider = IBMQ.load_account()
 
 def NEQR(image):
 
