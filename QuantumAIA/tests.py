@@ -145,6 +145,7 @@ def test() -> None:
         print("Q# test",i,"passed" if verify_results(qs_result, image) else "failed","in",end-start,"ms")
         print("Results (color, row, col): # of measurements")
         print(qs_result)
+        print()
 
         start = time.time()
         qiskit_result = get_results_qiskit(ITR, image)
@@ -152,6 +153,7 @@ def test() -> None:
         print("Qiskit test",i,"passed" if verify_results(qiskit_result, image) else "failed","in",end-start,"ms")
         print("Results (color, row, col): # of measurements")
         print(qiskit_result)
+        print()
         print()
         
 
