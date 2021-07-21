@@ -2,49 +2,85 @@ import math
 # Importing standard Qiskit libraries
 from qiskit import QuantumCircuit, transpile, Aer, IBMQ
 from qiskit import QuantumRegister, ClassicalRegister
+from qiskit import execute
 
 
 # Loading your IBM Quantum account(s)
-provider = IBMQ.load_account()
+#provider = IBMQ.load_account()
 
 def NEQR(image):
 
     intensity = QuantumRegister(8)
-    y_register = QuantumRegister(math.ceil(math.log(len(image))))
-    x_register = QuantumRegister(math.ceil(math.log(len(image[0]))))
+    y_register = QuantumRegister(math.ceil(math.log(len(image) + 1) / math.log(2)))
+    x_register = QuantumRegister(math.ceil(math.log(len(image[0]) + 1) / math.log(2)))
+    ancillas_y = QuantumRegister(len(y_register))
+    ancillas_x = QuantumRegister(len(x_register))
     i_measurement = ClassicalRegister(8)
-    y_measurement = ClassicalRegister(len(y_register))
+    y_measurement = ClassicalRegister(len(y_register)) 
     x_measurement = ClassicalRegister(len(x_register))
-    circuit = QuantumCircuit(intensity, y_register, x_register, i_measurement, y_measurement, x_measurement)
+    circuit = QuantumCircuit(intensity, y_register, x_register, ancillas_y, ancillas_x, i_measurement, y_measurement, x_measurement)
 
     circuit.h(y_register)
     circuit.h(x_register)
 
     for y in range(0, len(image)):
         for x in range(0, len(image[0])):
-            tempColor = "{0:b}".format(image[y][x])
-            tempX = "{0:b}".format(x)
-            tempY = "{0:b}".format(y)
+            binIntensity = "{0:b}".format(image[y][x])
+            binX = "{0:b}".format(x)
+            binY = "{0:b}".format(y)
             storeAlteredX = []
             storeAlteredY = []
 
-            for num in range(0, len(tempX)):
-                if tempX[num] == '0':
+            while len(binIntensity) < 8:
+                binIntensity = "0" + binIntensity
+
+            while len(binX) < len(x_register):
+                binX = "0" + binX
+
+            while len(binY) < len(y_register):
+                binY = "0" + binY
+
+            for num in range(0, len(binX)):
+                if binX[num] == '0':
                     circuit.x(x_register[num])
                     storeAlteredX.append(True)
                 else:
                     storeAlteredX.append(False)
             
-            for num in range(0, len(tempY)):
-                if tempY[num] == '0':
+            for num in range(0, len(binY)):
+                if binY[num] == '0':
                     circuit.x(y_register[num])
                     storeAlteredY.append(True)
                 else:
                     storeAlteredY.append(False)
 
-            for num in range(0, len(tempColor)):
-                if tempColor[num] == '1':
-                    circuit.ccx(x_register[num], y_register[num], intensity[num])
+            for num in range(0, len(binIntensity)):
+                if binIntensity[num] == '1':
+
+                    #start controlled x gate
+                    if len(x_register) + len(y_register) == 2:
+                        circuit.ccx(x_register[0], y_register[0], intensity[num])
+                    else:
+                        circuit.ccx(y_register[0], y_register[1], ancillas_y[0])
+                        for i in range(2, len(y_register)):
+                            circuit.ccx(y_register[i], ancillas_y[i - 2], ancillas_y[i - 1])
+                        circuit.cx(ancillas_y[len(ancillas_y) - 2], ancillas_y[len(ancillas_y) - 1])
+                        circuit.ccx(x_register[0], x_register[1], ancillas_x[0])
+                        for i in range(2, len(x_register)):
+                            circuit.ccx(x_register[i], ancillas_x[i - 2], ancillas_x[i - 1])
+                        circuit.cx(ancillas_x[len(ancillas_x) - 2], ancillas_x[len(ancillas_x) - 1])
+
+                        circuit.ccx(ancillas_x[len(ancillas_x) - 1], ancillas_y[len(ancillas_y) - 1], intensity[num])
+
+                        circuit.cx(ancillas_x[len(ancillas_x) - 2], ancillas_x[len(ancillas_x) - 1])
+                        for i in range(len(x_register) - 1, 1, -1):
+                            circuit.ccx(x_register[i], ancillas_x[i - 2], ancillas_x[i - 1])
+                        circuit.ccx(x_register[0], x_register[1], ancillas_x[0])
+                        circuit.cx(ancillas_y[len(ancillas_y) - 2], ancillas_y[len(ancillas_y) - 1])
+                        for i in range(len(y_register) - 1, 1, -1):
+                            circuit.ccx(y_register[i], ancillas_y[i - 2], ancillas_y[i - 1])
+                        circuit.ccx(y_register[0], y_register[1], ancillas_y[0])
+                    #end controlled x gate
 
             #makeshift adjoint
             for i in range(0, len(storeAlteredX)):
@@ -54,23 +90,35 @@ def NEQR(image):
                 if storeAlteredY[i]:
                     circuit.x(y_register[i])
 
+    circuit.measure(intensity, i_measurement)
+    circuit.measure(x_register, x_measurement)
+    circuit.measure(y_register, y_measurement)
+    
+    #run circuit
     simulator = Aer.get_backend('aer_simulator')
     simulation = execute(circuit, simulator, shots=1024)
     result = simulation.result()
     counts = result.get_counts(circuit)
 
+    #output
     for (state, count) in counts.items():
-        state_be = state[::-1]
-        print(f"Measured {state_be} {count} times.")
 
-    image1 = [
-        [0, 16, 32, 48],
-        [64, 80, 96, 112],
-        [128, 144, 160, 176],
-        [192, 208, 224, 255],
-    ]
+        y = int(state[0:3], 2)
+        x = int(state[4:7], 2)
+        i = int(state[8:14], 2)
+
+        if x < 4 and y < 4:
+            print(f"Row {y}, item {x} is {i}.")
+
+#test
+image1 = [
+    [0, 16, 32, 48],
+    [64, 80, 96, 112],
+    [128, 144, 160, 176],
+    [192, 208, 224, 255],
+]
     
-    NEQR(image1)
+NEQR(image1)
 
 
 
