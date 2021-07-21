@@ -125,8 +125,8 @@ def verify_results(results : Counter, image : List[List[int]]) -> bool:
             passing = False
             founds[y][x] = True
 
-    for row in founds:
-        for item in row:
+    for y, row in enumerate(founds):
+        for x, item in enumerate(row):
             if not item:
                 print("Position",y,x,"(row, col) was not found among the results")
                 passing = False
