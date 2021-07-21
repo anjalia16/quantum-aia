@@ -1,9 +1,8 @@
 import math
-from qiskit import QuantumCircuit, transpile, Aer, IBMQ
-from qiskit import QuantumRegister, ClassicalRegister
-from qiskit import execute
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from typing import List
 
-def NEQR(image):
+def NEQR(image : List[List[int]]) -> QuantumCircuit:
 
     intensity = QuantumRegister(8)
     y_register = QuantumRegister(math.ceil(math.log(len(image)) / math.log(2)))
@@ -90,32 +89,7 @@ def NEQR(image):
     circuit.measure(x_register, x_measurement)
     circuit.measure(y_register, y_measurement)
     
-    #run circuit
-    simulator = Aer.get_backend('aer_simulator')
-    simulation = execute(circuit, simulator, shots=1024)
-    result = simulation.result()
-    counts = result.get_counts(circuit)
-
-    #output
-    for (state, count) in counts.items():
-
-        x = int(state[1::-1], 2)
-        y = int(state[4:2:-1], 2)
-        i = int(state[13:5:-1], 2)
-
-        if x < 4 and y < 4:
-            print(f"{state}")
-            print(f"Row {y}, item {x} is {i}.")
-
-#test
-image1 = [
-    [0, 16, 32, 48],
-    [64, 80, 96, 112],
-    [128, 144, 160, 176],
-    [192, 208, 224, 255],
-]
-    
-NEQR(image1)
+    return circuit
 
 
 

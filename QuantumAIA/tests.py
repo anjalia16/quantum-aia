@@ -1,10 +1,14 @@
+import qsharp
+import time
+import QiskitNEQR
+
 from collections import Counter
 from math import ceil, log2
 from NEQR import EncodeNEQRResult
-import QiskitNEQR
-import qsharp
-import time
+from qiskit import Aer, execute, IBMQ, QuantumCircuit, transpile 
 from typing import List
+
+IBMQ.load_account()
 
 ITR = 1024
 images = [
@@ -18,11 +22,11 @@ images = [
     # 6x8 same color
     [
         [0] * 8,
-        [0] * 8,
-        [0] * 8,
-        [0] * 8,
-        [0] * 8,
-        [0] * 8,
+        [1] * 8,
+        [2] * 8,
+        [3] * 8,
+        [4] * 8,
+        [5] * 8,
     ]
 
 ]
@@ -52,7 +56,7 @@ def get_results_qs(iterations : int, image : List[List[int]]) -> Counter:
             results[(color, y, x)] += 1
     return results
 
-def get_results_qiskit(iterations :int, image) -> Counter:
+def get_results_qiskit(iterations :int, image : List[List[int]]) -> Counter:
     """
     Returns all the results of measuring the NEQR image encoded with the Qiskit implementation.
 
@@ -62,7 +66,28 @@ def get_results_qiskit(iterations :int, image) -> Counter:
     Returns
         Counter: A Counter collections object containing all the measurements. Key is in (color, y, x), value is the number of measurements.
     """
-    pass
+    circuit : QuantumCircuit = QiskitNEQR.NEQR(image) 
+    simulator = Aer.get_backend('aer_simulator')
+    circuit = transpile(circuit, backend=simulator, optimization_level=2)
+    simulation = execute(circuit, simulator, shots=iterations)
+    result = simulation.result()
+    counts = result.get_counts(circuit)
+
+    y_size : int = len(image)
+    x_size : int = len(image[0])
+    b_y : int = ceil(log2(y_size))
+    b_x : int = ceil(log2(x_size))
+    #output
+    resultc = Counter()
+    for (state, count) in counts.items():
+
+        x = int(state[b_x - 1::-1], 2)
+        y = int(state[b_x + b_y:b_x - 1:-1], 2)
+        i = int(state[b_x + b_y + 9:b_x + b_y:-1], 2)
+
+        if x < x_size and y < y_size:
+            resultc[(i, y, x)] = count
+    return resultc
 
 def verify_results(results : Counter, image : List[List[int]]) -> bool:
     """
@@ -75,7 +100,7 @@ def verify_results(results : Counter, image : List[List[int]]) -> bool:
     Returns:
         bool: True if the results are valid and match the image, False otherwise
     """
-    corrects : List[List[bool]] = [[False for pixel in row] for row in image]
+    founds : List[List[bool]] = [[False for pixel in row] for row in image]
 
     passing : bool = True
 
@@ -84,12 +109,13 @@ def verify_results(results : Counter, image : List[List[int]]) -> bool:
             print("(row, col) found among the results is out of bounds")
             passing = False
         elif image[y][x] == color:
-            corrects[y][x] = True
+            founds[y][x] = True
         else:
             print("Position", y, x, "(row, col) has incorrect color",color,"which should be",image[y][x])
             passing = False
+            founds[y][x] = True
 
-    for row in corrects:
+    for row in founds:
         for item in row:
             if not item:
                 print("Position",y,x,"(row, col) was not found among the results")
@@ -106,12 +132,18 @@ def test() -> None:
         start = time.time()
         qs_result = get_results_qs(ITR, image)
         end = time.time()
-        # qiskit_result = get_results_qiskit(ITR, image)
         print("Q# test",i,"passed" if verify_results(qs_result, image) else "failed","in",end-start,"ms")
         print("Results (color, row, col): # of measurements")
         print(qs_result)
+
+        start = time.time()
+        qiskit_result = get_results_qiskit(ITR, image)
+        end = time.time()
+        print("Qiskit test",i,"passed" if verify_results(qiskit_result, image) else "failed","in",end-start,"ms")
+        print("Results (color, row, col): # of measurements")
+        print(qiskit_result)
         print()
-        # print("Q# test",i,"passed" if verify_results(qiskit_result, image) else "failed")
+        
 
 if __name__ == "__main__":
     test()
