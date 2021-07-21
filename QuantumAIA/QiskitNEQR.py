@@ -95,27 +95,66 @@ def NEQR(image):
     simulation = execute(circuit, simulator, shots=1024)
     result = simulation.result()
     counts = result.get_counts(circuit)
+    return counts
 
-    #output
-    for (state, count) in counts.items():
+#tests
 
-        x = int(state[1::-1], 2)
-        y = int(state[4:2:-1], 2)
+def test1():
+    image = [
+        [0, 16, 32, 48],
+        [64, 80, 96, 112],
+        [128, 144, 160, 176],
+        [192, 208, 224, 255],
+    ]
+
+    for (state, count) in NEQR(image).items():
+        y = int(state[1::-1], 2)
+        x = int(state[4:2:-1], 2)
         i = int(state[13:5:-1], 2)
 
         if x < 4 and y < 4:
-            print(f"{state}")
-            print(f"Row {y}, item {x} is {i}.")
+            print(f"Row {x}, item {y} is {i}.")
 
-#test
-image1 = [
-    [0, 16, 32, 48],
-    [64, 80, 96, 112],
-    [128, 144, 160, 176],
-    [192, 208, 224, 255],
+def test2():
+    image = [
+    [0, 12, 24, 36],
+    [48, 60, 72, 84],
+    [96, 108, 130, 142],
+    [154, 166, 178, 180],
+    [192, 204, 216, 228]
 ]
-    
-NEQR(image1)
+
+    for (state, count) in NEQR(image).items():
+        y = int(state[1::-1], 2)
+        x = int(state[5:2:-1], 2)
+        i = int(state[14:6:-1], 2)
+
+        if x < 5 and y < 4:
+            print(f"Row {x}, item {y} is {i}.")
+
+def test3():
+    image = [
+        [0, 70],
+        [140, 210]
+    ]
+
+    for (state, count) in NEQR(image).items():
+        y = int(state[0], 2)
+        x = int(state[2], 2)
+        i = int(state[11:3:-1], 2)
+
+        if x < 2 and y < 2:
+            print(f"Row {x}, item {y} is {i}.")
+
+#uncomment to run tests
+#test1()
+#test2()
+#test3()
+
+
+
+
+
 
 
 
