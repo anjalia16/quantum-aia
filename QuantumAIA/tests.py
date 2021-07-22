@@ -26,7 +26,7 @@ images = [
         [2] * 8,
         [3] * 8,
         [4] * 8,
-        [5] * 8,
+        [5] * 8
     ],
     [
         [0, 12, 24, 36],
@@ -60,7 +60,7 @@ def get_results_qs(iterations : int, image : List[List[int]]) -> Counter:
         result = EncodeNEQRResult.simulate(image=image)
         color = int(''.join([str(l) for l in result[7::-1]]), 2)
         y = int(''.join([str(l) for l in result[7 + b_y:7:-1]]), 2)
-        x = int(''.join([str(l) for l in result[7 + b_y + b_x: 7 + b_x:-1]]), 2)
+        x = int(''.join([str(l) for l in result[7 + b_y + b_x: 7 + b_y:-1]]), 2)
 
         if y < y_size and x < x_size:
             results[(color, y, x)] += 1
