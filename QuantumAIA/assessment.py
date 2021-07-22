@@ -21,7 +21,7 @@ def resourceAssessment(image, sim, num, op_lvl, run):
         results = simulation.result()
 
     print()
-    print(f"Running resource assessment on the following image for {sim}:")
+    print(f"Running resource assessment on the following image for {sim} and optimization level {op_lvl}:")
     for row in image:
         print(row)
     print()
