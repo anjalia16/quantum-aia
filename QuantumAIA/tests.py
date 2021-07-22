@@ -1,7 +1,7 @@
 import qsharp
 import time
 import QiskitNEQR
-
+import constants
 from collections import Counter
 from math import ceil, log2
 from NEQR import EncodeNEQRResult
@@ -9,37 +9,6 @@ from qiskit import Aer, execute, IBMQ, QuantumCircuit, transpile
 from typing import List
 
 IBMQ.load_account()
-
-ITR = 1024
-images = [
-    # 4x4 increasing grayscale test
-    [
-        [0, 16, 32, 48],
-        [64, 80, 96, 112],
-        [128, 144, 160, 176],
-        [192, 208, 224, 255]
-    ],
-    # 6x8 same color
-    [
-        [0] * 8,
-        [1] * 8,
-        [2] * 8,
-        [3] * 8,
-        [4] * 8,
-        [5] * 8
-    ],
-    [
-        [0, 12, 24, 36],
-        [48, 60, 72, 84],
-        [96, 108, 130, 142],
-        [154, 166, 178, 180],
-        [192, 204, 216, 228]
-    ],
-    [
-        [0, 70],
-        [140, 210]
-    ]
-]
 
 def get_results_qs(iterations : int, image : List[List[int]]) -> Counter:
     """
@@ -138,9 +107,9 @@ def test() -> None:
     Iterates through all of the globally defined images, encodes them with both Q# and Qiskit, and verifies the results.
     Outputs if it passed or failed, and the time it took to do so.
     """
-    for i, image in enumerate(images):
+    for i, image in enumerate(constants.testimages):
         start = time.time()
-        qs_result = get_results_qs(ITR, image)
+        qs_result = get_results_qs(constants.ITR, image)
         end = time.time()
         print("Q# test",i,"passed" if verify_results(qs_result, image) else "failed","in",end-start,"ms")
         print("Results (color, row, col): # of measurements")
@@ -148,7 +117,7 @@ def test() -> None:
         print()
 
         start = time.time()
-        qiskit_result = get_results_qiskit(ITR, image)
+        qiskit_result = get_results_qiskit(constants.ITR, image)
         end = time.time()
         print("Qiskit test",i,"passed" if verify_results(qiskit_result, image) else "failed","in",end-start,"ms")
         print("Results (color, row, col): # of measurements")
