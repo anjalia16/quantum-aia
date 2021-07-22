@@ -7,12 +7,10 @@ def NEQR(image : List[List[int]]) -> QuantumCircuit:
     intensity = QuantumRegister(8)
     y_register = QuantumRegister(math.ceil(math.log(len(image)) / math.log(2)))
     x_register = QuantumRegister(math.ceil(math.log(len(image[0])) / math.log(2)))
-    ancillas_y = QuantumRegister(len(y_register))
-    ancillas_x = QuantumRegister(len(x_register))
     i_measurement = ClassicalRegister(8)
     y_measurement = ClassicalRegister(len(y_register)) 
     x_measurement = ClassicalRegister(len(x_register))
-    circuit = QuantumCircuit(intensity, y_register, x_register, ancillas_y, ancillas_x, i_measurement, y_measurement, x_measurement)
+    circuit = QuantumCircuit(intensity, y_register, x_register, i_measurement, y_measurement, x_measurement)
 
     circuit.h(y_register)
     circuit.h(x_register)
@@ -50,31 +48,7 @@ def NEQR(image : List[List[int]]) -> QuantumCircuit:
 
             for num in range(0, len(binIntensity)):
                 if binIntensity[num] == '1':
-
-                    #start controlled x gate
-                    if len(x_register) + len(y_register) == 2:
-                        circuit.ccx(x_register[0], y_register[0], intensity[num])
-                    else:
-                        circuit.ccx(y_register[0], y_register[1], ancillas_y[0])
-                        for i in range(2, len(y_register)):
-                            circuit.ccx(y_register[i], ancillas_y[i - 2], ancillas_y[i - 1])
-                        circuit.cx(ancillas_y[len(ancillas_y) - 2], ancillas_y[len(ancillas_y) - 1])
-                        circuit.ccx(x_register[0], x_register[1], ancillas_x[0])
-                        for i in range(2, len(x_register)):
-                            circuit.ccx(x_register[i], ancillas_x[i - 2], ancillas_x[i - 1])
-                        circuit.cx(ancillas_x[len(ancillas_x) - 2], ancillas_x[len(ancillas_x) - 1])
-
-                        circuit.ccx(ancillas_x[len(ancillas_x) - 1], ancillas_y[len(ancillas_y) - 1], intensity[num])
-
-                        circuit.cx(ancillas_x[len(ancillas_x) - 2], ancillas_x[len(ancillas_x) - 1])
-                        for i in range(len(x_register) - 1, 1, -1):
-                            circuit.ccx(x_register[i], ancillas_x[i - 2], ancillas_x[i - 1])
-                        circuit.ccx(x_register[0], x_register[1], ancillas_x[0])
-                        circuit.cx(ancillas_y[len(ancillas_y) - 2], ancillas_y[len(ancillas_y) - 1])
-                        for i in range(len(y_register) - 1, 1, -1):
-                            circuit.ccx(y_register[i], ancillas_y[i - 2], ancillas_y[i - 1])
-                        circuit.ccx(y_register[0], y_register[1], ancillas_y[0])
-                    #end controlled x gate
+                    circuit.mcx(y_register[:] + x_register[:], intensity[num])
 
             #makeshift adjoint
             for i in range(0, len(storeAlteredX)):
